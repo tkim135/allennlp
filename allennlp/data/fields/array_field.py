@@ -36,7 +36,6 @@ class ArrayField(Field[numpy.ndarray]):
         # Also, the explicit dtype declaration for `asarray` is necessary for scalars.
         return_array = numpy.asarray(numpy.ones(max_shape, dtype=self.dtype) * self.padding_value,
                                      dtype=self.dtype)
-
         # If the tensor has a different shape from the largest tensor, pad dimensions with zeros to
         # form the right shaped list of slices for insertion into the final tensor.
         slicing_shape = list(self.array.shape)
@@ -54,6 +53,5 @@ class ArrayField(Field[numpy.ndarray]):
         return ArrayField(numpy.array([], dtype=self.dtype),
                           padding_value=self.padding_value,
                           dtype=self.dtype)
-
     def __str__(self) -> str:
         return f"ArrayField with shape: {self.array.shape} and dtype: {self.dtype}."
