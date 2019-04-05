@@ -63,7 +63,6 @@ class Trainer(TrainerBase):
                  moving_average: Optional[MovingAverage] = None,
                  fp16: bool = False,
                  gradient_accumulation_batch_size: int = None,
-                 unfreeze_step_number: int = None,
                  num_steps_reset_metrics: int = None) -> None:
         """
         A trainer for doing supervised learning. It just takes a labeled dataset
@@ -258,7 +257,6 @@ class Trainer(TrainerBase):
             self._tensorboard.enable_activation_logging(self.model)
 
         self.gradient_accumulation_batch_size = gradient_accumulation_batch_size
-        self.unfreeze_step_number = unfreeze_step_number
         self.num_steps_reset_metrics = num_steps_reset_metrics
 
     def rescale_gradients(self) -> Optional[float]:
@@ -355,11 +353,8 @@ class Trainer(TrainerBase):
             self._batch_num_total += 1
             batch_num_total = self._batch_num_total
 
-            if self.unfreeze_step_number is not None:
-                if batch_num_total == 1 and hasattr(self.model, 'freeze'):
-                    self.model.freeze()
-                elif batch_num_total == self.unfreeze_step_number and hasattr(self.model, 'unfreeze'):
-                    self.model.unfreeze()
+            if hasattr(self.model, 'step_batch'):
+                self.model.step_batch(batch_num_total)
 
             self.optimizer.zero_grad()
 
@@ -739,7 +734,6 @@ class Trainer(TrainerBase):
         momentum_scheduler_params = params.pop("momentum_scheduler", None)
         fp16 = params.pop_bool("fp16", False)
         gradient_accumulation_batch_size = params.pop_int("gradient_accumulation_batch_size", None)
-        unfreeze_step_number = params.pop_int("unfreeze_step_number", None)
         num_steps_reset_metrics = params.pop_int("num_steps_reset_metrics", None)
 
         if isinstance(cuda_device, list):
@@ -832,4 +826,4 @@ class Trainer(TrainerBase):
                    moving_average=moving_average,
                    fp16=fp16,
                    gradient_accumulation_batch_size=gradient_accumulation_batch_size,
-                   unfreeze_step_number=unfreeze_step_number)
+                   num_steps_reset_metrics=num_steps_reset_metrics)
