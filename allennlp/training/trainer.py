@@ -735,7 +735,6 @@ class Trainer(TrainerBase):
         fp16 = params.pop_bool("fp16", False)
         gradient_accumulation_batch_size = params.pop_int("gradient_accumulation_batch_size", None)
         num_steps_reset_metrics = params.pop_int("num_steps_reset_metrics", None)
-        fp16_params = params.pop("fp16_params", Params({"dynamic_loss_scale": True}))
 
         if isinstance(cuda_device, list):
             model_device = cuda_device[0]
@@ -764,7 +763,7 @@ class Trainer(TrainerBase):
                 from apex.optimizers import FP16_Optimizer
             else:
                 from apex.fp16_utils import FP16_Optimizer
-            optimizer = FP16_Optimizer(optimizer, **fp16_params.as_dict())
+            optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
 
         if "moving_average" in params:
             moving_average = MovingAverage.from_params(params.pop("moving_average"), parameters=parameters)
