@@ -7,7 +7,7 @@ At its core it uses Hugging Face's PyTorch implementation
 (https://github.com/huggingface/pytorch-pretrained-BERT),
 so thanks to them!
 """
-from typing import Dict, List
+from typing import Dict, List, Union
 import logging
 
 import torch
@@ -256,8 +256,10 @@ class PretrainedBertEmbedder(BertEmbedder):
         If the name is a key in the list of pretrained models at
         https://github.com/huggingface/pytorch-pretrained-BERT/blob/master/pytorch_pretrained_bert/modeling.py#L41
         the corresponding path will be used; otherwise it will be interpreted as a path or URL.
-    requires_grad : ``bool``, optional (default = False)
-        If True, compute gradient of BERT parameters for fine tuning.
+    requires_grad : ``str``, optional (default = 'none')
+        If 'none', all layers are not fine tuned
+        If 'all', all layers are fine tuned
+        Otherwise, use the string as a comma separated list of substrings of the names of the parameters that will be fine tuned.
     top_layer_only: ``bool``, optional (default = ``False``)
         If ``True``, then only return the top layer instead of apply the scalar mix.
     scalar_mix_parameters: ``List[float]``, optional, (default = None)
@@ -265,11 +267,22 @@ class PretrainedBertEmbedder(BertEmbedder):
         produced by different layers. These mixing weights are not updated during
         training.
     """
-    def __init__(self, pretrained_model: str, requires_grad: bool = False, top_layer_only: bool = False,
+    def __init__(self, pretrained_model: str, requires_grad: str = 'none', top_layer_only: bool = False,
                  scalar_mix_parameters: List[float] = None) -> None:
         model = PretrainedBertModel.load(pretrained_model)
 
-        for param in model.parameters():
-            param.requires_grad = requires_grad
+        if requires_grad in ['none', 'all']:
+            for param in model.parameters():
+                param.requires_grad = (requires_grad == 'all')
+        else:
+            model_name_regexes = requires_grad.split(',')
+            param_dict = model.state_dict()
+            for name, param in model.named_parameters():
+                found = False
+                for regex in model_name_regexes:
+                    if regex in name:
+                        found = True
+                        break
+                param.requires_grad = found
 
         super().__init__(bert_model=model, top_layer_only=top_layer_only, scalar_mix_parameters=scalar_mix_parameters)
