@@ -319,7 +319,7 @@ class ConditionalRandomField(torch.nn.Module):
         log_denominator = self._input_likelihood(inputs, mask)
         log_numerator = self._joint_likelihood(inputs, tags, mask)
 
-        return torch.sum(log_numerator - log_denominator)
+        return torch.mean(log_numerator - log_denominator)
 
     def viterbi_tags(self,
                      logits: torch.Tensor,
