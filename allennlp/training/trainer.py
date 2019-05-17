@@ -41,6 +41,7 @@ class Trainer(TrainerBase):
                  train_dataset: Iterable[Instance],
                  validation_dataset: Optional[Iterable[Instance]] = None,
                  patience: Optional[int] = None,
+                 min_delta: float = 0.0,
                  validation_metric: str = "-loss",
                  validation_iterator: DataIterator = None,
                  shuffle: bool = True,
@@ -93,6 +94,8 @@ class Trainer(TrainerBase):
             Number of epochs to be patient before early stopping: the training is stopped
             after ``patience`` epochs with no improvement. If given, it must be ``> 0``.
             If None, early stopping is disabled.
+        min_delta: float, optional, (default=0.0).
+            Min change in metric to be considered better.
         validation_metric : str, optional (default="loss")
             Validation metric to measure for whether to stop training using patience
             and whether to serialize an ``is_best`` model each epoch. The metric name
@@ -206,7 +209,7 @@ class Trainer(TrainerBase):
                                      'or None (if you want to disable early stopping)'.format(patience))
 
         # For tracking is_best_so_far and should_stop_early
-        self._metric_tracker = MetricTracker(patience, validation_metric)
+        self._metric_tracker = MetricTracker(patience, validation_metric, min_delta=min_delta)
         # Get rid of + or -
         self._validation_metric = validation_metric[1:]
 
@@ -724,6 +727,7 @@ class Trainer(TrainerBase):
                     validation_iterator: DataIterator = None) -> 'Trainer':
         # pylint: disable=arguments-differ
         patience = params.pop_int("patience", None)
+        min_delta = params.pop_float("min_delta", 0.0)
         validation_metric = params.pop("validation_metric", "-loss")
         shuffle = params.pop_bool("shuffle", True)
         num_epochs = params.pop_int("num_epochs", 20)
@@ -806,6 +810,7 @@ class Trainer(TrainerBase):
         return cls(model, optimizer, iterator,
                    train_data, validation_data,
                    patience=patience,
+                   min_delta=min_delta,
                    validation_metric=validation_metric,
                    validation_iterator=validation_iterator,
                    shuffle=shuffle,

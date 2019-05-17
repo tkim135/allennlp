@@ -26,13 +26,17 @@ class MetricTracker:
     should_decrease : str, optional (default = None)
         If ``metric_name`` isn't provided (in which case we can't infer ``should_decrease``),
         then you have to specify it here.
+    min_delta: float, optional (default = 0.0)
+        Minimum change in metric to be considered better.
     """
     def __init__(self,
                  patience: Optional[int] = None,
                  metric_name: str = None,
-                 should_decrease: bool = None) -> None:
+                 should_decrease: bool = None,
+                 min_delta: float = 0.0) -> None:
         self._best_so_far: float = None
         self._patience = patience
+        self._min_delta = min_delta
         self._epochs_with_no_improvement = 0
         self._is_best_so_far = True
         self.best_epoch_metrics: Dict[str, float] = {}
@@ -78,7 +82,8 @@ class MetricTracker:
                 "should_decrease": self._should_decrease,
                 "best_epoch_metrics": self.best_epoch_metrics,
                 "epoch_number": self._epoch_number,
-                "best_epoch": self.best_epoch
+                "best_epoch": self.best_epoch,
+                "min_delta": self._min_delta,
         }
 
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
@@ -93,14 +98,15 @@ class MetricTracker:
         self.best_epoch_metrics = state_dict["best_epoch_metrics"]
         self._epoch_number = state_dict["epoch_number"]
         self.best_epoch = state_dict["best_epoch"]
+        self._min_delta = state_dict["min_delta"]
 
     def add_metric(self, metric: float) -> None:
         """
         Record a new value of the metric and update the various things that depend on it.
         """
         new_best = ((self._best_so_far is None) or
-                    (self._should_decrease and metric < self._best_so_far) or
-                    (not self._should_decrease and metric > self._best_so_far))
+                    (self._should_decrease and (self._best_so_far - metric) > self._min_delta) or
+                    (not self._should_decrease and (metric - self._best_so_far) > self._min_delta))
 
         if new_best:
             self.best_epoch = self._epoch_number
