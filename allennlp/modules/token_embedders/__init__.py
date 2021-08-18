@@ -17,3 +17,4 @@ from allennlp.modules.token_embedders.language_model_token_embedder import \
 from allennlp.modules.token_embedders.bag_of_word_counts_token_embedder import BagOfWordCountsTokenEmbedder
 from allennlp.modules.token_embedders.pass_through_token_embedder import PassThroughTokenEmbedder
 from allennlp.modules.token_embedders.pretrained_transformer_embedder import PretrainedTransformerEmbedder
+from allennlp.modules.token_embedders.gpt_token_embedder import GptPretrainedEmbedder
