@@ -760,7 +760,7 @@ class Trainer(TrainerBase):
             except ImportError:
                 raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
 
-        optimizer = Optimizer.from_params(parameters, params.pop("optimizer"))
+        optimizer = Optimizer.from_params(model_parameters=parameters, params=params.pop("optimizer"))
         if fp16:
             # The FP16_Optimizer we use depends on whether the optimizer is FusedAdam or a regular pytorch optimizer
             if isinstance(optimizer, FusedAdam):

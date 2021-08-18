@@ -2,7 +2,7 @@ from typing import Dict, List
 import logging
 
 from overrides import overrides
-from pytorch_transformers.tokenization_auto import AutoTokenizer
+from transformers import AutoTokenizer
 import torch
 
 from allennlp.common.util import pad_sequence_to_length
@@ -49,6 +49,8 @@ class PretrainedTransformerIndexer(TokenIndexer[int]):
             logger.warning("Your pretrained model appears to be uncased, "
                            "but your indexer is not lowercasing tokens.")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, do_lower_case=do_lowercase)
+        if model_name.startswith("gpt2"):
+            self.tokenizer.pad_token = self.tokenizer.eos_token
         self._namespace = namespace
         self._added_to_vocabulary = False
         self._padding_value = self.tokenizer.convert_tokens_to_ids([self.tokenizer.pad_token])[0]
