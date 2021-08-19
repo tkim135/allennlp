@@ -152,6 +152,8 @@ class BasicTextFieldEmbedder(TextFieldEmbedder):
         allow_unmatched_keys = params.pop_bool("allow_unmatched_keys", False)
 
         token_embedder_params = params.pop('token_embedders', None)
+        if "gpt" in token_embedder_params:
+            token_embedder_params["gpt"]["num_classes"] = vocab.get_vocab_size("labels")
 
         if token_embedder_params is not None:
             # New way: explicitly specified, so use it.
